@@ -51,7 +51,7 @@ jobs:
           VAULT_REPO: ${{ secrets.VAULT_REPO }}
         run: |
           gh api "repos/${VAULT_REPO}/contents/bootstrap/versions.env" \
-            -H "Accept: application/vnd.github.raw" > /tmp/versions.env
+            -H "Accept: application/vnd.github.raw" > .versions.env
 
       - name: Restore Heavy RE & CLI Binary Cache
         uses: actions/cache/restore@v4
@@ -59,7 +59,7 @@ jobs:
           path: |
             /opt/re-tools
             /opt/agent-bins
-          key: ti62k-bins-${{ hashFiles('/tmp/versions.env') }}
+          key: ti62k-bins-${{ hashFiles('.versions.env') }}
           restore-keys: |
             ti62k-bins-
 
@@ -85,6 +85,7 @@ jobs:
             clone --depth 1 "https://github.com/${VAULT_REPO}.git" /opt/vault-bootstrap
           chmod +x /opt/vault-bootstrap/bootstrap/*.sh /opt/vault-bootstrap/bootstrap/starred-recipes/*.sh
           /opt/vault-bootstrap/bootstrap/run-all.sh
+          sudo chmod -R a+rX /opt/re-tools /opt/agent-bins
 
       - name: Save Binary Cache
         uses: actions/cache/save@v4
@@ -92,7 +93,7 @@ jobs:
           path: |
             /opt/re-tools
             /opt/agent-bins
-          key: ti62k-bins-${{ hashFiles('/tmp/versions.env') }}
+          key: ti62k-bins-${{ hashFiles('.versions.env') }}
 
       - name: Active Session & 10-Minute Encrypted Vault Auto-Save Loop
         env:
