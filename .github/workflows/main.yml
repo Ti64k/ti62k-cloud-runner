@@ -54,6 +54,7 @@ jobs:
             -H "Accept: application/vnd.github.raw" > .versions.env
 
       - name: Restore Heavy RE & CLI Binary Cache
+        id: restore-bins
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -88,6 +89,7 @@ jobs:
           sudo chmod -R a+rX /opt/re-tools /opt/agent-bins
 
       - name: Save Binary Cache
+        if: steps.restore-bins.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
