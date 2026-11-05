@@ -107,15 +107,27 @@ jobs:
         run: |
           /opt/vault-bootstrap/bootstrap/95-keepalive-loop.sh
 
-      - name: Final Encrypted Vault Sync, Tailscale Logout & Auto-Respawn
-        if: always()
+      - name: Final Encrypted Vault Sync & Tailscale Logout
+        if: success() || cancelled()
         env:
           VAULT_REPO: ${{ secrets.VAULT_REPO }}
           VAULT_PAT: ${{ secrets.VAULT_PAT }}
           SERVER_PASS: ${{ secrets.SERVER_PASS }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           GH_TOKEN: ${{ github.token }}
-          AUTO_RESTART: ${{ inputs.auto_restart }}
+          AUTO_RESTART: 'false'
+          JOB_STATUS: ${{ job.status }}
           REPO_FULL: ${{ github.repository }}
         run: |
           /opt/vault-bootstrap/bootstrap/99-shutdown.sh
+
+      - name: Auto-Respawn Next Workstation Cycle
+        if: success() && inputs.auto_restart == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_FULL: ${{ github.repository }}
+        run: |
+          gh workflow run "Ti62k Ultimate AI & RE Workstation" \
+            --repo "${REPO_FULL}" \
+            --ref main \
+            -f auto_restart=true
